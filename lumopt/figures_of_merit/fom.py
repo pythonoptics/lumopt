@@ -1,8 +1,9 @@
 import lumopt.lumerical_methods.lumerical_scripts as ls
-from numpy import conj,pi
+from numpy import conj, pi
+
 
 class fom(object):
-    '''The Figure of Merit'''
+    """The Figure of Merit"""
 
     def __init__(self):
         return
@@ -18,5 +19,3 @@ class fom(object):
             return [self.wavelength]
         except:
             return self.wavelengths
-
-

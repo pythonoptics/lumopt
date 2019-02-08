@@ -7,12 +7,14 @@ from lumopt.utilities.fields import Fields
 
 
 import lumapi
-mu0=4*np.pi*1e-7
-c=2.9979e8
+
+mu0 = 4 * np.pi * 1e-7
+c = 2.9979e8
+
 
 class ModeMatch(fom):
 
-    '''Single wavelength Figure of Merit class which is simply the modematch integral of the fields to a propagation
+    """Single wavelength Figure of Merit class which is simply the modematch integral of the fields to a propagation
     eigenmode of the cross-section present where the overlap is calculated. The overlap integral is that of equation (7)
     of `https://doi.org/10.1364/OE.21.021693`
 
@@ -32,68 +34,85 @@ class ModeMatch(fom):
         mode selection and at the wavelength of interest
     :param direction:
         The direction of desired propagation energy
-'''
+"""
 
-    def __init__(self, monitor_name='fom', wavelength=1550e-9,modeorder=1,direction='Forward'):
+    def __init__(
+        self, monitor_name="fom", wavelength=1550e-9, modeorder=1, direction="Forward"
+    ):
         self.monitor_name = monitor_name
         self.wavelengths = [wavelength]
         # self.mode=self.normalize_input_mode(mode) #mode is a fields object
         self.current_fom = None
         self.fields = None
-        self.modeorder=modeorder
-        self.direction=direction
-        self.mode=None
-        self.inverted_H_mode=None
+        self.modeorder = modeorder
+        self.direction = direction
+        self.mode = None
+        self.inverted_H_mode = None
 
-    def initialize(self,sim, plot=False):
-        self.get_mode(sim,plot=plot)
+    def initialize(self, sim, plot=False):
+        self.get_mode(sim, plot=plot)
 
-    def get_mode(self, sim,  plot=False):
-        '''Extracts the desired mode from the base simulation'''
+    def get_mode(self, sim, plot=False):
+        """Extracts the desired mode from the base simulation"""
 
         # TODO: deal with other mode propagation directions (should be ok but to be verified)
-        fdtd=sim.fdtd
+        fdtd = sim.fdtd
 
-        modesource_name = self.monitor_name + '_mode_extract'
+        modesource_name = self.monitor_name + "_mode_extract"
         fdtd.eval('addmode; set("name","{}");'.format(modesource_name))
 
-
-        ls.copy_properties(fdtd,self.monitor_name,modesource_name,['x', 'y', 'z', 'x span', 'y span', 'z span'])
-        fdtd.eval("set('wavelength start',{});set('wavelength stop',{});".format(self.wavelengths[0],self.wavelengths[0]))
+        ls.copy_properties(
+            fdtd,
+            self.monitor_name,
+            modesource_name,
+            ["x", "y", "z", "x span", "y span", "z span"],
+        )
+        fdtd.eval(
+            "set('wavelength start',{});set('wavelength stop',{});".format(
+                self.wavelengths[0], self.wavelengths[0]
+            )
+        )
 
         fdtd.eval("set('direction','{}');".format(self.direction))
         fdtd.eval("save('modeextract');")
-        fdtd.eval('updatesourcemode({});'.format(self.modeorder))
+        fdtd.eval("updatesourcemode({});".format(self.modeorder))
 
-        mode_fields = ls.get_fields_modesource(fdtd, modesource_name, get_H=True,direction=self.direction)
+        mode_fields = ls.get_fields_modesource(
+            fdtd, modesource_name, get_H=True, direction=self.direction
+        )
         mode_fields.normalize_power(plot=plot)
         self.mode = mode_fields
 
-    def put_monitors(self,simulation):
-        ''' Make sure the field monitor is looking at the right wavelength'''
+    def put_monitors(self, simulation):
+        """ Make sure the field monitor is looking at the right wavelength"""
 
-        script="select('{}');" \
-               "set('override global monitor settings',1);" \
-               "set('frequency points',1);" \
-               "set('wavelength center',{});".format(self.monitor_name,self.wavelengths[0])
-
+        script = (
+            "select('{}');"
+            "set('override global monitor settings',1);"
+            "set('frequency points',1);"
+            "set('wavelength center',{});".format(
+                self.monitor_name, self.wavelengths[0]
+            )
+        )
 
         simulation.fdtd.eval(script)
 
     def get_fom(self, simulation):
-        '''Uploads the fields from a completed forward simulation, and performs the mode overlap integral on them'''
+        """Uploads the fields from a completed forward simulation, and performs the mode overlap integral on them"""
         fields = ls.get_fields(simulation.fdtd, self.monitor_name, get_H=True)
         source_power = np.zeros(np.shape(fields.wl))
         for i, wl in enumerate(fields.wl):
             source_power[i] = ls.get_source_power(simulation.fdtd, wl=wl)
 
         self.fields = fields
-        self.source_power=source_power
-        fom_v_wavelength,phase_preactors = self.mode.calculate_overlap(fields,remove_H=True)
+        self.source_power = source_power
+        fom_v_wavelength, phase_preactors = self.mode.calculate_overlap(
+            fields, remove_H=True
+        )
 
-        fom_v_wavelength =np.array(fom_v_wavelength)/np.array(source_power)
+        fom_v_wavelength = np.array(fom_v_wavelength) / np.array(source_power)
 
-        self.phase_prefactors=np.array(phase_preactors)/np.array(source_power)
+        self.phase_prefactors = np.array(phase_preactors) / np.array(source_power)
 
         # TODO This does not properly deal with multiple wavelengths right now
 
@@ -102,51 +121,76 @@ class ModeMatch(fom):
     def add_adjoint_sources(self, sim):
 
         pp = self.phase_prefactors[0]
-        omega=2*np.pi*c/self.wavelengths[0]
-        adjoint_injection_mode=Fields(self.mode.x,self.mode.y,self.mode.z,self.mode.wl,self.mode.E*np.conj(pp)*omega*1j*0,self.mode.D,self.mode.eps,self.mode.H*np.conj(pp)*omega*1j)
+        omega = 2 * np.pi * c / self.wavelengths[0]
+        adjoint_injection_mode = Fields(
+            self.mode.x,
+            self.mode.y,
+            self.mode.z,
+            self.mode.wl,
+            self.mode.E * np.conj(pp) * omega * 1j * 0,
+            self.mode.D,
+            self.mode.eps,
+            self.mode.H * np.conj(pp) * omega * 1j,
+        )
 
-          # TODO: This does not deal with multiple wavelengths
+        # TODO: This does not deal with multiple wavelengths
 
-        if self.direction=='Forward':
-            adjoint_injection_direction='Backward'
-        elif self.direction=='Backward':
-            adjoint_injection_direction='Forward'
+        if self.direction == "Forward":
+            adjoint_injection_direction = "Backward"
+        elif self.direction == "Backward":
+            adjoint_injection_direction = "Forward"
         else:
-            raise ValueError('Direction must be Forward or Backward')
+            raise ValueError("Direction must be Forward or Backward")
 
-        ls.add_imported_source(sim.fdtd,adjoint_injection_mode,fommonitorname=self.monitor_name,wavelengths=self.wavelengths,direction=adjoint_injection_direction)
+        ls.add_imported_source(
+            sim.fdtd,
+            adjoint_injection_mode,
+            fommonitorname=self.monitor_name,
+            wavelengths=self.wavelengths,
+            direction=adjoint_injection_direction,
+        )
 
         return
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     import numpy as np
     from lumopt.optimization import Optimization
-    from lumopt.optimizers.generic_optimizers import ScipyOptimizers,FixedStepGradientDescent
+    from lumopt.optimizers.generic_optimizers import (
+        ScipyOptimizers,
+        FixedStepGradientDescent,
+    )
     from lumopt.utilities.load_lumerical_scripts import load_from_lsf
     import os
-    from lumopt.geometries.polygon import function_defined_Polygon,taper_splitter
+    from lumopt.geometries.polygon import function_defined_Polygon, taper_splitter
     from lumopt.utilities.materials import Material
     from lumopt import CONFIG
 
-    script = load_from_lsf(os.path.join(CONFIG['root'], 'examples/splitter01/splitter_base_TE_modematch.lsf'))
-
-
+    script = load_from_lsf(
+        os.path.join(
+            CONFIG["root"], "examples/splitter01/splitter_base_TE_modematch.lsf"
+        )
+    )
 
     fom = ModeMatch(modeorder=3)
-    #optimizer = ScipyOptimizers(max_iter=20)
-    optimizer=FixedStepGradientDescent(max_dx=20e-9,max_iter=20)
-    bounds = [(0.2e-6, 1e-6)]*18
-    geometry = function_defined_Polygon(func=taper_splitter, initial_params=np.linspace(0.25e-6, 0.6e-6, 18),
-                                        eps_out=Material(1.44 ** 2), eps_in=Material(2.8 ** 2, 2), bounds=bounds,
-                                        depth=220e-9,
-                                        edge_precision=5)
+    # optimizer = ScipyOptimizers(max_iter=20)
+    optimizer = FixedStepGradientDescent(max_dx=20e-9, max_iter=20)
+    bounds = [(0.2e-6, 1e-6)] * 18
+    geometry = function_defined_Polygon(
+        func=taper_splitter,
+        initial_params=np.linspace(0.25e-6, 0.6e-6, 18),
+        eps_out=Material(1.44 ** 2),
+        eps_in=Material(2.8 ** 2, 2),
+        bounds=bounds,
+        depth=220e-9,
+        edge_precision=5,
+    )
 
     # geometry=Polygon(eps_in=2.8**2,eps_out=1.44**2)
-    opt = Optimization(base_script=script, fom=fom, geometry=geometry, optimizer=optimizer)
+    opt = Optimization(
+        base_script=script, fom=fom, geometry=geometry, optimizer=optimizer
+    )
     opt.run()
     # opt.initialize()
     #
