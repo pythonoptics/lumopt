@@ -1,5 +1,8 @@
 # Continuous adjoint optimization wrapper for Lumerical
 
+## requirements
+Lumeridcal 2019
+
 ## Introduction
 
 This is a continuous adjoint opimtization wrapper for Lumerical, using Python as the main user interface. It is released under an MIT license. It is still work in progress 
