@@ -4,7 +4,7 @@ import numpy as np
 from lumopt import CONFIG
 import sys
 from lumopt.figures_of_merit.field_intensities import FieldIntensities
-from fom import fom
+from .fom import fom
 from lumopt.utilities.fields import Fields
 
 

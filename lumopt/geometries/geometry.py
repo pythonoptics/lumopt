@@ -104,13 +104,13 @@ class Geometry(object):
         current_eps=self.get_eps()[0]
         current_params=self.get_current_params()
         d_epses=[]
-        print 'Getting d eps'
+        print('Getting d eps')
         for i,param in enumerate(current_params):
             d_params = current_params.copy()
             d_params[i] = param + dx
             d_eps=(self.get_eps(d_params)[0]-current_eps)/dx
             d_epses.append(d_eps)
-            print(','),
+            print((','), end=' ')
         print('')
         return d_epses
 
@@ -119,13 +119,13 @@ class Geometry(object):
         current_eps, x, y, z, sim = self.get_eps(return_sim=True)
         current_params=self.get_current_params()
         d_epses=[]
-        print 'Getting d eps'
+        print('Getting d eps')
         for i,param in enumerate(current_params):
             d_params = current_params.copy()
             d_params[i] = param + dx
             d_eps=(self.get_eps_update(sim,d_params)[0]-current_eps)/dx
             d_epses.append(d_eps)
-            print(','),
+            print((','), end=' ')
         print('')
         sim.close()
         return d_epses,x,y,z

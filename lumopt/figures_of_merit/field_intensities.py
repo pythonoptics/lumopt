@@ -1,5 +1,5 @@
 import lumopt.lumerical_methods.lumerical_scripts as ls
-from fom import fom
+from .fom import fom
 import numpy as np
 import lumapi
 

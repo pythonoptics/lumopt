@@ -71,8 +71,8 @@ class Super_Optimization(object):
         else:
             self.optimizer.run(verbose)
 
-        print('FINAL FOM = {}'.format(self.optimizer.fom_hist[-1]))
-        print('FINAL PARAMETERS = {}'.format(self.optimizer.params_hist[-1]))
+        print(('FINAL FOM = {}'.format(self.optimizer.fom_hist[-1])))
+        print(('FINAL PARAMETERS = {}'.format(self.optimizer.params_hist[-1])))
         return self.optimizer.fom_hist[-1],self.optimizer.params_hist[-1]
 
 
@@ -145,8 +145,8 @@ class Optimization(Super_Optimization):
         else:
             self.optimizer.run(verbose)
 
-        print('FINAL FOM = {}'.format(self.optimizer.fom_hist[-1]))
-        print('FINAL PARAMETERS = {}'.format(self.optimizer.params_hist[-1]))
+        print(('FINAL FOM = {}'.format(self.optimizer.fom_hist[-1])))
+        print(('FINAL PARAMETERS = {}'.format(self.optimizer.params_hist[-1])))
         return self.optimizer.fom_hist[-1],self.optimizer.params_hist[-1]
 
 
@@ -245,7 +245,7 @@ class Optimization(Super_Optimization):
         '''
 
         if self.verbose:
-            print 'Running Forward Solves'
+            print('Running Forward Solves')
 
         # create the simulation
         forward_sim = self.make_sim()
@@ -263,7 +263,7 @@ class Optimization(Super_Optimization):
         forward_sim.close()
 
         if self.verbose:
-            print('FOM={}'.format(fom))
+            print(('FOM={}'.format(fom)))
         return fom
 
     def run_adjoint_solves(self, plotfields=False):
@@ -271,7 +271,7 @@ class Optimization(Super_Optimization):
         Generates the adjoint simulations, runs them and extacts the adjoint fields
         '''
         if self.verbose:
-            print 'Running adjoint Solves'
+            print('Running adjoint Solves')
 
         adjoint_sim = self.make_sim()
 
@@ -290,7 +290,7 @@ class Optimization(Super_Optimization):
         Generates the adjoint simulations, moslty for testing
         '''
         if self.verbose:
-            print 'Running adjoint Solves'
+            print('Running adjoint Solves')
 
         adjoint_sim = self.make_sim()
 
@@ -323,7 +323,7 @@ class Optimization(Super_Optimization):
 
     from copy import deepcopy
 
-    def calculate_finite_differences_gradients_2(self, n_derivatives=range(4, 6), dx=0.01e-9, central=False, print_res=True,
+    def calculate_finite_differences_gradients_2(self, n_derivatives=list(range(4, 6)), dx=0.01e-9, central=False, print_res=True,
                                                  superverbose=False):
 
         '''Calculates the finite difference gradients, and also compares the derivative to the gradients calculated using the adjoint
@@ -338,14 +338,14 @@ class Optimization(Super_Optimization):
         self.run_forward_solves()
         self.run_adjoint_solves()
         adjoint_gradients=self.calculate_gradients(real=False)
-        print "Adjoint gradients= {}".format(adjoint_gradients)
+        print("Adjoint gradients= {}".format(adjoint_gradients))
         current_fom = self.fomHist[-1]
         current_eps = deepcopy(self.forward_fields.eps.copy())
         current_E = deepcopy(self.forward_fields.E)
         current_E_adj = deepcopy(self.adjoint_fields.E)
         sparse_pert_E = 2*eps0*current_E*current_E_adj
         if superverbose:
-            print('Nominal FOM = {}'.format(current_fom))
+            print(('Nominal FOM = {}'.format(current_fom)))
         for i, param in zip(n_derivatives, params[n_derivatives]):
             if not central:
                 # d_geo = copy.deepcopy(self.geometry)
@@ -353,28 +353,28 @@ class Optimization(Super_Optimization):
                 d_params[i] = param + dx
                 # d_geo.update_geometry(d_params)
                 d_fom = self.callable_fom(d_params)
-                if superverbose: print('dfom={}'.format(d_fom))
+                if superverbose: print(('dfom={}'.format(d_fom)))
                 deriv = (d_fom - current_fom)/dx
                 finite_differences_gradients.append(deriv)
                 d_eps = (self.forward_fields.eps - current_eps)/dx
                 plt.pcolormesh(np.real(d_eps[:, :, 0, 0, 2]).transpose())
                 plt.show()
                 recalculated_adjoint_deriv = trapz3D(np.sum(sparse_pert_E*d_eps,axis=-1)[:,:,:,0],self.forward_fields.x,self.forward_fields.y,self.forward_fields.z)
-                print 'recalculated adjoint gradients={}'.format(recalculated_adjoint_deriv)
+                print('recalculated adjoint gradients={}'.format(recalculated_adjoint_deriv))
                 recalculated_adjoint_derivs.append(recalculated_adjoint_deriv)
             else:
-                print 'central not supported on this on yet'
+                print('central not supported on this on yet')
 
-            if print_res: print('Derivative n {}={}'.format(i, deriv))
+            if print_res: print(('Derivative n {}={}'.format(i, deriv)))
         self.geometry.update_geometry(params)
 
         if print_res:
-            print finite_differences_gradients
-            print recalculated_adjoint_derivs
+            print(finite_differences_gradients)
+            print(recalculated_adjoint_derivs)
 
         return finite_differences_gradients, recalculated_adjoint_derivs,adjoint_gradients
 
-    def calculate_finite_differences_gradients(self, n_derivatives=range(4,6), dx=3e-9,central=True,print_res=True,superverbose=False):
+    def calculate_finite_differences_gradients(self, n_derivatives=list(range(4,6)), dx=3e-9,central=True,print_res=True,superverbose=False):
         '''Calculates the derivatives using finite differences. This should be only used to verify the gradients
 
         :param n_derivatives: The number of derivatives that should be calculated (on to two simulations per derivative)
@@ -395,14 +395,14 @@ class Optimization(Super_Optimization):
                     fomdx = self.get_fom_geo(geometry)
                     deriv=(fomdx - current_fom)/dx
                     finite_differences_gradients.append(deriv)
-                    if print_res: print('derivative n {}={}'.format(i, deriv))
+                    if print_res: print(('derivative n {}={}'.format(i, deriv)))
             except:
                 params=np.array(self.geometry.get_current_params())
                 # if superverbose:print('Current parameters={}'.format(params))
                 if not central or superverbose:
                     current_fom = self.get_fom_geo(self.geometry)
                     if superverbose:
-                        print('Nominal FOM = {}'.format(current_fom))
+                        print(('Nominal FOM = {}'.format(current_fom)))
                 for i,param in zip(n_derivatives,params[n_derivatives]):
                     if not central:
                         # d_geo = copy.deepcopy(self.geometry)
@@ -410,7 +410,7 @@ class Optimization(Super_Optimization):
                         d_params[i] = param + dx
                         # d_geo.update_geometry(d_params)
                         d_fom = self.callable_fom(d_params)
-                        if superverbose: print('dfom={}'.format(d_fom))
+                        if superverbose: print(('dfom={}'.format(d_fom)))
                         deriv = (d_fom - current_fom)/dx
                         finite_differences_gradients.append(deriv)
                     else:
@@ -422,20 +422,20 @@ class Optimization(Super_Optimization):
                         d_params_neg[i]=param-dx
                         # d_geo_pos.update_geometry(d_params_pos)
                         # d_geo_neg.update_geometry(d_params_neg)
-                        print('getting + '),
+                        print(('getting + '), end=' ')
                         d_fom_pos=self.callable_fom(d_params_pos)
-                        if superverbose: print('dfom + ={}'.format(d_fom_pos))
-                        print('getting - '),
+                        if superverbose: print(('dfom + ={}'.format(d_fom_pos)))
+                        print(('getting - '), end=' ')
                         d_fom_neg=self.callable_fom(d_params_neg)
-                        if superverbose: print('dfom + ={}'.format(d_fom_neg))
+                        if superverbose: print(('dfom + ={}'.format(d_fom_neg)))
                         deriv=(d_fom_pos-d_fom_neg)/dx/2.
                         finite_differences_gradients.append(deriv)
                         # if superverbose: print('Current parameters={}'.format(self.geometry.get_current_params()))
-                    if print_res: print('Derivative n {}={}'.format(i,deriv))
+                    if print_res: print(('Derivative n {}={}'.format(i,deriv)))
                 self.geometry.update_geometry(params)
 
         if print_res:
-            print finite_differences_gradients
+            print(finite_differences_gradients)
 
         return finite_differences_gradients
 
@@ -444,7 +444,7 @@ class Optimization(Super_Optimization):
         '''Uses the forward and adjoint fields to calculate the derivatives to the optimization parameters
             Assumes the forward and adjoint solves have been run'''
         if self.verbose:
-            print 'Calculating Gradients'
+            print('Calculating Gradients')
 
         # Create the gradient fields
         self.gradient_fields = Gradient_fields(forward_fields=self.forward_fields, adjoint_fields=self.adjoint_fields)
@@ -470,7 +470,7 @@ class Optimization(Super_Optimization):
                 return inspect.stack()[num]  # 1 is get_caller's caller
             calling_file= os.path.abspath(inspect.getfile(get_caller(3)[0]))
         except:
-            print 'Couldnt copy python setupfile'
+            print('Couldnt copy python setupfile')
 
 
         directories = os.listdir(os.getcwd())
@@ -480,7 +480,7 @@ class Optimization(Super_Optimization):
             old = - 1
 
         if old == 25:
-            print 'Too many optimization folders in {}'.format(os.getcwd())
+            print('Too many optimization folders in {}'.format(os.getcwd()))
             raise ValueError
 
         new_dir_name = 'opts_{}'.format(old + 1)

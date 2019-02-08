@@ -2,7 +2,7 @@ import lumopt.lumerical_methods.lumerical_scripts as ls
 import numpy as np
 from lumopt import CONFIG
 import sys
-from fom import fom
+from .fom import fom
 from lumopt.utilities.fields import Fields
 
 

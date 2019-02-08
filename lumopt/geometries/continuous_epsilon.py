@@ -1,4 +1,4 @@
-from geometry import Geometry
+from .geometry import Geometry
 from lumopt.utilities.materials import Material
 import lumapi
 import numpy as np
@@ -57,9 +57,9 @@ class ContinousEpsilon2D(Geometry):
         for x in self.x:
             for y in self.y:#,y in zip(xx.reshape(-1),yy.reshape(-1)):
                 derivs.append(gradient_fields.integrate_square(center=(x,y),box=(dx,dy),z=self.z,wl=wavelength,real=real))
-            print '.',
-        print ''
-        print 'Done'
+            print('.', end=' ')
+        print('')
+        print('Done')
         return derivs
 
     def initialize(self,wavelengths,opt):
@@ -581,4 +581,4 @@ if __name__=='__main__':
     y_geo=opt.geometry.y
 
 
-    print 'ha'
+    print('ha')

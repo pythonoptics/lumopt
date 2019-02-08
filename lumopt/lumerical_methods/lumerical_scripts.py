@@ -219,7 +219,7 @@ def copy_properties(fdtd,origin,destination,properties= ['x', 'y', 'z', 'x_span'
         try:
             dest.__setattr__(thing.replace(' ','_'), orig.__getattr__(thing.replace(' ','_')))
         except:
-            print 'Could not copy {} from {} to {} '.format(thing,origin,destination)
+            print('Could not copy {} from {} to {} '.format(thing,origin,destination))
 
 def set_injection_axis(fdtd,source_name):
     src = fdtd.getObjectById(source_name)

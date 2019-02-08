@@ -65,15 +65,15 @@ class Optimizer(object):
         fomax.clear()
         paramsax.clear()
         gradients_ax.clear()
-        fomax.plot(range(self.iteration),self.fom_hist)
+        fomax.plot(list(range(self.iteration)),self.fom_hist)
         fomax.set_xlabel('Iteration')
         fomax.set_title('Figure of Merit')
         fomax.set_ylabel('FOM')
-        paramsax.semilogy(range(self.iteration),np.abs(self.params_hist))
+        paramsax.semilogy(list(range(self.iteration)),np.abs(self.params_hist))
         paramsax.set_xlabel('Iteration')
         paramsax.set_ylabel('Parameters')
         paramsax.set_title("Parameter evolution")
-        gradients_ax.semilogy(range(self.iteration),np.abs(self.gradients_hist))
+        gradients_ax.semilogy(list(range(self.iteration)),np.abs(self.gradients_hist))
         gradients_ax.set_xlabel('Iteration')
         gradients_ax.set_ylabel('Gradient Magnitude')
         gradients_ax.set_title("Gradient evolution")
@@ -130,11 +130,11 @@ class FixedStepGradientDescent(Optimizer):
         self.current_params=self.start_point
         while self.iteration<self.max_iter:
             if verbose:
-                print('Startin iteration number {}'.format(self.iteration))
+                print(('Startin iteration number {}'.format(self.iteration)))
             current_fom=self.callable_fom(self.current_params)
             self.current_fom=current_fom
             if verbose:
-                print('New figure of merit: {}'.format(current_fom))
+                print(('New figure of merit: {}'.format(current_fom)))
             gradients=self.callable_jac(self.current_params)
 
             change=self.calculate_change(gradients,self.max_dx)
@@ -204,10 +204,10 @@ class Adaptive_Gradient_Descent(FixedStepGradientDescent):
         self.current_params = self.start_point
 
         #First iteration outside the loop
-        print('Startin iteration number {}'.format(self.iteration))
+        print(('Startin iteration number {}'.format(self.iteration)))
         self.current_fom = self.callable_fom(self.current_params)
         if verbose:
-            print('New figure of merit: {}'.format(self.current_fom))
+            print(('New figure of merit: {}'.format(self.current_fom)))
         gradients = self.callable_jac(self.current_params)
 
         self.callback() #sets fomhist and such
@@ -218,7 +218,7 @@ class Adaptive_Gradient_Descent(FixedStepGradientDescent):
             self.dx=np.minimum(self.dx*self.dx_regrowth_factor,self.max_dx)
 
             if verbose:
-                print('Startin iteration number {}'.format(self.iteration))
+                print(('Startin iteration number {}'.format(self.iteration)))
 
             new_params=self.current_params+self.calculate_change(gradients,self.dx)
             new_params=self.enforce_bounds(new_params)
@@ -237,7 +237,7 @@ class Adaptive_Gradient_Descent(FixedStepGradientDescent):
             self.current_fom=new_fom
 
             if verbose:
-                print('New figure of merit: {}'.format(self.current_fom))
+                print(('New figure of merit: {}'.format(self.current_fom)))
 
             if not self.iteration==self.max_iter:
                 gradients = self.callable_jac(self.current_params)
@@ -248,7 +248,7 @@ class Adaptive_Gradient_Descent(FixedStepGradientDescent):
 
     def reduce_step_size(self):
         self.dx=np.maximum(self.dx/2,self.min_dx)
-        print('Figure of merit decreasing: reducing step size to {}'.format(self.dx))
+        print(('Figure of merit decreasing: reducing step size to {}'.format(self.dx)))
 
 
 
@@ -301,7 +301,7 @@ class ScipyOptimizers(Optimizer):
 
     def run(self,verbose=True):
         print('Running Scipy Optimizer')
-        print 'bounds= {}'.format(self.bounds)
-        print 'start= {}'.format(self.start_point)
+        print('bounds= {}'.format(self.bounds))
+        print('start= {}'.format(self.start_point))
         res= sci.minimize(fun=self.callable_fom,x0=self.start_point,jac=self.callable_jac,bounds=self.bounds,callback=self.callback,options={'maxiter':self.max_iter,'disp':True,'gtol':self.pgtol},method=self.method)
         return res

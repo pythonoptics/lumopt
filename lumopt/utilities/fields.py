@@ -31,7 +31,7 @@ class Fields(object):
                 input = np.array([input])
             return input
 
-        x,y,z,wl=map(process_input,[x,y,z,wl])
+        x,y,z,wl=list(map(process_input,[x,y,z,wl]))
 
         self.x=x
         self.y=y
@@ -150,7 +150,7 @@ class Fields(object):
         '''Calculates the mode overlap with another field. This assumes this mode has been normalized'''
         if not self.normalized:
             self.normalize_power()
-            print 'Normalized the mode being modematched to'
+            print('Normalized the mode being modematched to')
 
         if not (len(self.x)==len(other_field.x) and len(self.y)==len(other_field.y) and len(self.z)==len(other_field.z) and len(self.wl)==len(other_field.wl)):
             raise ValueError('Fields are not on same grid, (or not the same amount of wavelengths Modematch does not support this (write a method!!)')
@@ -309,7 +309,7 @@ class FieldsNoInterp(Fields):
         delta_y=deltas[1]
         delta_z=deltas[2]
 
-        x, y, z, wl ,delta_x,delta_y,delta_z= map(process_input, [x, y, z, wl,delta_x,delta_y,delta_z])
+        x, y, z, wl ,delta_x,delta_y,delta_z= list(map(process_input, [x, y, z, wl,delta_x,delta_y,delta_z]))
 
         deltas=[delta_x,delta_y,delta_z]
 
