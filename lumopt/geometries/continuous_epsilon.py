@@ -230,8 +230,8 @@ class FunctionDefinedContinuousEpsilon3DYeeGrid(Geometry):
             d_eps = self.func(d_params)[0]
             eps_derivatives.append((d_eps - current_eps) / self.dx)
 
-        """eps_derivatives are the derivatives for the output of self.func . We need 
-        the derivatives on the points of the Yee Cell though since nternally, FDTD interpolate 
+        """eps_derivatives are the derivatives for the output of self.func . We need
+        the derivatives on the points of the Yee Cell though since nternally, FDTD interpolate
         eps onto the Yee Grid. Here I assume that the mesh dimensions are constant in the area
         so things are easier to calculate"""
 

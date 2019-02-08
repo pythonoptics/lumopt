@@ -1,14 +1,12 @@
-from .geometry import Geometry
 import numpy as np
-from lumopt.utilities.edge import Edge
 import scipy
-from lumopt.utilities.materials import Material
-
-
-import lumapi
 import random
 
-# import matlab
+import lumapi
+
+from lumopt.utilities.edge import Edge
+from lumopt.utilities.materials import Material
+from .geometry import Geometry
 
 
 class Polygon(Geometry):
@@ -95,7 +93,10 @@ class Polygon(Geometry):
         for edge in self.edges:
             gradient_pairs_edges.append(
                 edge.derivative(
-                    gradient_fields, wavelength, n_points=self.edge_precision, real=real
+                    gradient_fields,
+                    wavelength,
+                    n_points=self.edge_precision,
+                    real=real,
                 )
             )
             print(".", end=" ")
@@ -114,10 +115,12 @@ class Polygon(Geometry):
             normal_edge_2 = self.edges[(i + 1) % len(self.edges)].normal
 
             deriv_x = np.dot(
-                deriv_edge_1 * normal_edge_1 + deriv_edge_2 * normal_edge_2, [1, 0, 0]
+                deriv_edge_1 * normal_edge_1 + deriv_edge_2 * normal_edge_2,
+                [1, 0, 0],
             )
             deriv_y = np.dot(
-                deriv_edge_1 * normal_edge_1 + deriv_edge_2 * normal_edge_2, [0, 1, 0]
+                deriv_edge_1 * normal_edge_1 + deriv_edge_2 * normal_edge_2,
+                [0, 1, 0],
             )
 
             gradients.append(deriv_x)
@@ -162,14 +165,18 @@ class Polygon(Geometry):
             "set('y',0);"
             "set('z span',{2});"
             "set('vertices',vertices);"
-            "{3}".format(self.hash, self.z, self.depth, self.eps_in.set_script())
+            "{3}".format(
+                self.hash, self.z, self.depth, self.eps_in.set_script()
+            )
         )
         fdtd.eval(script)
 
     def update_geo_in_sim(self, sim, params):
         points = np.reshape(params, (-1, 2))
         sim.fdtd.putv("vertices", points)
-        script = "select('polygon_{0}');" "set('vertices',vertices);".format(self.hash)
+        script = "select('polygon_{0}');" "set('vertices',vertices);".format(
+            self.hash
+        )
         sim.fdtd.eval(script)
 
     def plot(self, ax):
@@ -189,15 +196,23 @@ class Polygon(Geometry):
 
 def taper_splitter(params):
     """Just a taper where the paramaters are the y coordinates of the nodes of a cubic spline"""
-    points_x = np.concatenate(([-1.01e-6], np.linspace(-1e-6, 1e-6, 18), [1.01e-6]))
+    points_x = np.concatenate(
+        ([-1.01e-6], np.linspace(-1e-6, 1e-6, 18), [1.01e-6])
+    )
     points_y = np.concatenate(([0.25e-6], params, [0.6e-6]))
     n_interpolation_points = 100
-    polygon_points_x = np.linspace(min(points_x), max(points_x), n_interpolation_points)
+    polygon_points_x = np.linspace(
+        min(points_x), max(points_x), n_interpolation_points
+    )
     interpolator = scipy.interpolate.interp1d(points_x, points_y, kind="cubic")
     polygon_points_y = interpolator(polygon_points_x)
     polygon_points_y = np.maximum(0.2e-6, (np.minimum(1e-6, polygon_points_y)))
-    polygon_points_up = [(x, y) for x, y in zip(polygon_points_x, polygon_points_y)]
-    polygon_points_down = [(x, -y) for x, y in zip(polygon_points_x, polygon_points_y)]
+    polygon_points_up = [
+        (x, y) for x, y in zip(polygon_points_x, polygon_points_y)
+    ]
+    polygon_points_down = [
+        (x, -y) for x, y in zip(polygon_points_x, polygon_points_y)
+    ]
     polygon_points = np.array(polygon_points_up[::-1] + polygon_points_down)
     return polygon_points
 
@@ -289,7 +304,9 @@ class function_defined_Polygon(Polygon):
             d_params = np.array(self.current_params.copy())
             d_params[i] += dx
             d_polygon_points_linear = self.func(d_params).reshape(-1)
-            partial_derivs = (d_polygon_points_linear - polygon_points_linear) / dx
+            partial_derivs = (
+                d_polygon_points_linear - polygon_points_linear
+            ) / dx
             gradients.append(sum(partial_derivs * polygon_gradients))
 
         self.gradients.append(gradients)
@@ -313,7 +330,11 @@ class function_defined_Polygon(Polygon):
             "set('z span',{2});"
             "set('vertices',{3});"
             "{4}".format(
-                self.hash, self.z, self.depth, vertices_string, self.eps_in.set_script()
+                self.hash,
+                self.z,
+                self.depth,
+                vertices_string,
+                self.eps_in.set_script(),
             )
         )
         return script
@@ -342,7 +363,9 @@ def cross(params):
     points_x = np.concatenate(([-2.01e-6], np.linspace(-2e-6, x_end, 10)))
     points_y = np.concatenate(([0.25e-6], params))
     n_interpolation_points = 50
-    polygon_points_x = np.linspace(min(points_x), max(points_x), n_interpolation_points)
+    polygon_points_x = np.linspace(
+        min(points_x), max(points_x), n_interpolation_points
+    )
     interpolator = scipy.interpolate.interp1d(points_x, points_y, kind="cubic")
     polygon_points_y = [
         max(min(point, 1e-6), -1e-6) for point in interpolator(polygon_points_x)
